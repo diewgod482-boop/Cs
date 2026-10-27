@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เว็บแนะนำตัว</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,400;0,600;1,800;1,900&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+<style>
+/* ===================== THEME VARIABLES (แก้สีได้ในแผงตั้งค่า หรือแก้ตรงนี้) ===================== */
+:root{
+  --accent:#fcee0a;   /* สีตัวอักษรหลัก (เหลือง) */
+  --glow:#19ff8a;     /* สีเรืองแสงของตัวอักษร (เขียว) */
+  --pink:#ff2bd6;
+  --cyan:#19f0ff;
+  --violet:#7a2bff;
+  --ink:#0b0420;
+  --pc:#ff2bd6;
+  --px:0; --py:0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Kanit',sans-serif;color:#f1e9ff;min-height:100vh;overflow-x:hidden;
+  background:linear-gradient(180deg,#12053a 0%,#2b0b6b 45%,#4a1190 70%,#0b0420 100%);
+}
+button{font-family:inherit;cursor:pointer}
+.mono{font-family:'Orbitron',sans-serif}
+
+/* ===================== BACKGROUND LAYERS ===================== */
+#bgimg{position:fixed;inset:0;z-index:-9;background-size:cover;background-position:center;opacity:.9}
+.layer{position:fixed;inset:0;pointer-events:none}
+#sky{z-index:-8;background:
+  radial-gradient(60% 40% at 30% 30%,color-mix(in srgb,var(--violet) 55%,transparent),transparent 70%),
+  radial-gradient(50% 40% at 80% 20%,color-mix(in srgb,var(--cyan) 30%,transparent),transparent 70%),
+  radial-gradient(70% 40% at 60% 100%,color-mix(in srgb,var(--pink) 45%,transparent),transparent 70%)}
+#city{z-index:-7;transform:translate(calc(var(--px)*-12px),calc(var(--py)*-6px))}
+#city svg{width:106%;height:100%;margin-left:-3%}
+.win{animation:wink 4s infinite}
+@keyframes wink{0%,92%,100%{opacity:1}94%,98%{opacity:.15}}
+#tri{z-index:-6;display:grid;place-items:center;transform:translate(calc(var(--px)*18px),calc(var(--py)*10px))}
+#tri svg{width:min(52vw,520px);margin-top:-18vh;margin-left:-28vw;filter:drop-shadow(0 0 10px var(--pink)) drop-shadow(0 0 28px var(--pink));animation:triPulse 4s ease-in-out infinite}
+@keyframes triPulse{50%{opacity:.55;transform:rotate(2deg) scale(1.03)}}
+#puffs{z-index:-5}
+.puff{position:absolute;bottom:-6vh;width:var(--s);height:var(--s);border-radius:50%;
+  background:radial-gradient(circle at 40% 38%,#fff6c4 0,#ffc96b 30%,var(--pink) 58%,transparent 72%);
+  filter:blur(1.5px);opacity:.8;mix-blend-mode:screen;animation:puff var(--d) ease-in-out infinite alternate}
+.puff::after{content:"";position:absolute;inset:0;border-radius:50%;opacity:.35;
+  background:radial-gradient(#2a0a5a 1.4px,transparent 1.6px) 0 0/9px 9px}
+.puff.dark{background:radial-gradient(circle at 40% 38%,#5a1aa8 0,#2d0a63 50%,transparent 72%);mix-blend-mode:normal;opacity:.7}
+@keyframes puff{from{transform:translateY(0) scale(.9)}to{transform:translateY(-6vh) scale(1.12)}}
+#warns{z-index:-4}
+.warn{position:absolute;width:56px;height:50px;animation:blink 1.4s steps(2) infinite}
+.warn svg{width:100%;height:100%;filter:drop-shadow(0 0 8px #fff)}
+@keyframes blink{50%{opacity:.15}}
+#rain{z-index:-3}
+#flash{z-index:-2;background:#fff;opacity:0;mix-blend-mode:overlay;transition:opacity .08s}
+#flash.on{opacity:.55}
+#scan{z-index:50;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:multiply;opacity:.55}
+#vig{z-index:49;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(5,0,20,.75))}
+#fx{z-index:60}
+body.no-city #city,body.no-tri #tri,body.no-smoke #puffs,body.no-scan #scan,body.no-warn #warns,body.no-flash #flash{display:none}
+body.no-glitch .glitch::before,body.no-glitch .glitch::after{display:none}
+
+/* ===================== LAYOUT ===================== */
+#app{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:90px 20px 120px}
+.hero{text-align:left;padding:30px 0 20px;max-width:900px}
+.ttl{
+  font-family:'Kanit',sans-serif;font-weight:900;font-style:italic;line-height:1.02;
+  color:var(--accent);display:inline-block;transform:skewX(-8deg);letter-spacing:1px;
+  text-shadow:0 0 6px color-mix(in srgb,var(--accent) 80%,transparent),0 3px 0 rgba(0,0,0,.35),0 0 26px var(--glow),0 0 60px color-mix(in srgb,var(--glow) 60%,transparent);
+  -webkit-text-stroke:1px color-mix(in srgb,var(--accent) 70%,#000);
+}
+h1.ttl{font-size:clamp(2.8rem,10vw,7rem);position:relative;outline:none}
+.hatch{height:16px;width:min(300px,64%);margin:12px 0 10px 8px;transform:skewX(-24deg);
+  background:repeating-linear-gradient(115deg,var(--accent) 0 7px,transparent 7px 13px);filter:drop-shadow(0 0 8px var(--glow))}
+.typing{font-weight:600;font-size:clamp(1rem,2.6vw,1.5rem);color:#fff;text-shadow:0 0 10px var(--cyan);min-height:2em;margin-left:8px}
+.typing::after{content:"▌";color:var(--accent);animation:blink 1s steps(2) infinite;margin-left:3px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 10px;align-items:center}
+.search{flex:1 1 200px;max-width:320px;padding:11px 16px;border-radius:999px;border:2px solid var(--cyan);background:rgba(8,2,30,.6);color:#fff;font-family:inherit;font-size:1rem;outline:none;box-shadow:0 0 14px color-mix(in srgb,var(--cyan) 50%,transparent)}
+.search::placeholder{color:#a9b6ff}
+.badge{font-family:'Orbitron',sans-serif;font-size:.8rem;color:var(--cyan);border:1px solid var(--cyan);padding:6px 12px;border-radius:6px;text-shadow:0 0 8px var(--cyan)}
+
+.btn{
+  --c:var(--accent);position:relative;border:2px solid var(--c);color:var(--c);background:rgba(10,3,36,.65);
+  padding:10px 20px;font-weight:600;font-size:1rem;font-style:italic;letter-spacing:.5px;
+  clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);
+  text-shadow:0 0 8px var(--c);transition:.2s;backdrop-filter:blur(6px)
+}
+.btn:hover{background:var(--c);color:#12053a;text-shadow:none;transform:translateY(-2px) skewX(-4deg);box-shadow:0 0 24px var(--c)}
+.btn.sm{padding:7px 14px;font-size:.9rem}
+.btn.pink{--c:var(--pink)} .btn.cyan{--c:var(--cyan)}
+.btn.ghost{padding:8px 14px}
+
+/* ===================== CARDS ===================== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:26px;margin-top:26px;perspective:1000px}
+.card{
+  --rx:0deg;--ry:0deg;--mx:50%;--my:50%;
+  position:relative;padding:22px 18px 18px;text-align:center;border-radius:20px;cursor:pointer;
+  background:linear-gradient(160deg,rgba(24,8,64,.78),rgba(10,3,34,.82));
+  border:2px solid var(--pc);backdrop-filter:blur(8px);
+  box-shadow:0 0 18px color-mix(in srgb,var(--pc) 55%,transparent),inset 0 0 30px color-mix(in srgb,var(--pc) 18%,transparent);
+  transform:rotateX(var(--rx)) rotateY(var(--ry));transition:transform .15s ease-out,box-shadow .3s;
+  animation:rise .7s both;animation-delay:calc(var(--i)*.09s);overflow:hidden
+}
+.card::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(240px circle at var(--mx) var(--my),rgba(255,255,255,.22),transparent 60%)}
+.card::after{content:"";position:absolute;top:0;left:-120%;width:60%;height:100%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);transition:.7s}
+.card:hover::after{left:140%}
+.card:hover{box-shadow:0 0 38px var(--pc),inset 0 0 40px color-mix(in srgb,var(--pc) 30%,transparent)}
+body.no-tilt .card{transform:none!important}
+@keyframes rise{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1}}
+.card .nm{font-weight:900;font-style:italic;font-size:1.55rem;color:var(--accent);text-shadow:0 0 12px var(--glow);margin-top:10px;outline:none}
+.card .nk{color:var(--cyan);font-size:.95rem;outline:none}
+.card .rl{margin:6px 0 12px;font-size:.95rem;color:#e7dcff;outline:none;min-height:1.3em}
+.x{position:absolute;top:8px;right:10px;width:30px;height:30px;border-radius:50%;border:2px solid #ff4d6d;background:#2a0612;color:#ff4d6d;font-size:1.1rem;line-height:1;z-index:3}
+.x:hover{background:#ff4d6d;color:#fff}
+.tags{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px}
+.tag{font-size:.78rem;padding:3px 10px;border-radius:999px;border:1px solid var(--pc);background:color-mix(in srgb,var(--pc) 22%,transparent)}
+.addcard{display:grid;place-items:center;min-height:240px;border:2px dashed var(--cyan);border-radius:20px;color:var(--cyan);font-size:1.2rem;background:rgba(8,2,30,.4);cursor:pointer;transition:.2s;font-style:italic;font-weight:600}
+.addcard:hover{background:rgba(25,240,255,.14);box-shadow:0 0 30px var(--cyan);transform:scale(1.03)}
+.addcard b{display:block;font-size:3rem;line-height:1}
+
+/* ===================== AVATAR ===================== */
+.av{position:relative;width:128px;height:128px;margin:0 auto;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle,color-mix(in srgb,var(--pc) 35%,#0b0420),#0b0420);
+  border:3px solid var(--pc);box-shadow:0 0 22px var(--pc),inset 0 0 20px color-mix(in srgb,var(--pc) 50%,transparent);overflow:hidden;transition:.3s}
+.av::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px dashed var(--accent);animation:spin 12s linear infinite;opacity:.8;pointer-events:none}
+.av .emo{font-size:4.2rem;line-height:1;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 0 10px var(--pc))}
+.av img{width:100%;height:100%;object-fit:cover}
+.card:hover .av{transform:scale(1.08) rotate(-3deg)}
+.av.big{width:220px;height:220px}.av.big .emo{font-size:8rem}
+.camera{display:none;position:absolute;bottom:6px;right:50%;transform:translateX(50%);font-style:normal;background:#000a;border-radius:999px;padding:2px 10px;font-size:1.1rem}
+body.editing .camera{display:block}
+body.editing .av{cursor:pointer}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes bob{50%{transform:translateY(-6px) rotate(4deg)}}
+
+/* ===================== PROFILE ===================== */
+.profile{animation:rise .6s both}
+.pbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:26px}
+.pnav{display:flex;gap:10px;align-items:center;color:var(--cyan)}
+.pgrid{display:grid;grid-template-columns:260px 1fr;gap:34px;align-items:start;
+  background:rgba(10,3,34,.66);backdrop-filter:blur(10px);border:2px solid var(--pc);border-radius:24px;padding:34px;
+  box-shadow:0 0 34px color-mix(in srgb,var(--pc) 60%,transparent)}
+@media(max-width:760px){.pgrid{grid-template-columns:1fr;padding:22px}.pleft{display:grid;place-items:center}}
+.pright h2{font-size:clamp(2.2rem,6vw,4rem);outline:none}
+.pright .nick{color:var(--cyan);font-size:1.2rem;text-shadow:0 0 10px var(--cyan);outline:none}
+.pright .role{display:inline-block;margin:8px 0 18px;padding:4px 16px;background:var(--pc);color:#12053a;font-weight:600;font-style:italic;transform:skewX(-14deg);outline:none;min-width:60px}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0}
+.info div{border-left:4px solid var(--accent);padding:6px 12px;background:rgba(255,255,255,.05)}
+.info small{display:block;color:var(--cyan);font-size:.75rem;letter-spacing:1px}
+.info span{outline:none;display:block;min-height:1.3em}
+.sec{font-weight:800;font-style:italic;color:var(--accent);margin:22px 0 8px;font-size:1.2rem;text-shadow:0 0 10px var(--glow)}
+.bio{white-space:pre-wrap;line-height:1.7;outline:none;min-height:3em;padding:4px}
+.skill{display:grid;grid-template-columns:130px 1fr 44px auto;gap:10px;align-items:center;margin:8px 0}
+.skill .sn{outline:none;font-weight:600}
+.bar{height:12px;border-radius:99px;background:#ffffff18;overflow:hidden;border:1px solid #ffffff30}
+.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--pc),var(--accent));box-shadow:0 0 12px var(--pc);animation:grow 1.2s .2s forwards;transition:width .3s}
+.skill .sv{font-family:'Orbitron';font-size:.8rem;color:var(--cyan)}
+@keyframes grow{to{width:var(--w)}}
+.skill input[type=range]{display:none;grid-column:1/-1}
+body.editing .skill input[type=range]{display:block}
+.mini{background:none;border:1px solid #ff4d6d;color:#ff4d6d;border-radius:6px;padding:0 8px;display:none}
+body.editing .mini{display:inline-block}
+.editonly{display:none}body.editing .editonly{display:inline-flex}
+.colorrow{display:none;margin-top:14px;font-size:.9rem;gap:8px;align-items:center;justify-content:center}
+body.editing .colorrow{display:flex}
+.colorrow input{width:44px;height:30px;border:none;background:none}
+
+/* ===================== EDIT MODE ===================== */
+body.editing [contenteditable]{outline:1px dashed var(--cyan)!important;outline-offset:3px;border-radius:4px;cursor:text;transition:.2s}
+body.editing [contenteditable]:focus{outline:2px solid var(--accent)!important;background:rgba(255,255,255,.08)}
+[contenteditable]:empty::before{content:attr(data-ph);opacity:.5}
+body.editing h1.glitch::before,body.editing h1.glitch::after{display:none}
+#editBanner{position:fixed;top:0;left:0;right:0;z-index:70;text-align:center;font-size:.85rem;padding:4px;background:repeating-linear-gradient(115deg,var(--accent) 0 14px,#14063a 14px 28px);color:#fff;font-weight:800;text-shadow:0 0 4px #000,0 0 4px #000;display:none}
+body.editing #editBanner{display:block}
+
+/* ===================== GLITCH ===================== */
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;inset:0;pointer-events:none;overflow:hidden;-webkit-text-stroke:0}
+.glitch::before{color:var(--cyan);text-shadow:none;transform:translateX(-4px);clip-path:inset(0 0 62% 0);animation:g1 3.4s infinite steps(1)}
+.glitch::after{color:var(--pink);text-shadow:none;transform:translateX(4px);clip-path:inset(60% 0 0 0);animation:g2 2.7s infinite steps(1)}
+@keyframes g1{0%,88%,100%{opacity:0}89%{opacity:1;clip-path:inset(10% 0 60% 0)}93%{opacity:1;clip-path:inset(40% 0 30% 0)}96%{opacity:0}}
+@keyframes g2{0%,80%,100%{opacity:0}81%{opacity:1;clip-path:inset(55% 0 10% 0)}86%{opacity:1;clip-path:inset(20% 0 55% 0)}90%{opacity:0}}
+
+/* ===================== FIXED UI ===================== */
+#backBtn{position:fixed;top:30px;left:18px;z-index:80;display:none}
+#backBtn.show{display:inline-block;animation:rise .4s both}
+.fab{position:fixed;right:18px;z-index:80;width:54px;height:54px;border-radius:50%;border:2px solid var(--c,var(--cyan));background:rgba(10,3,36,.85);color:#fff;font-size:1.5rem;box-shadow:0 0 18px var(--c,var(--cyan));transition:.2s;backdrop-filter:blur(6px)}
+.fab:hover{transform:scale(1.14) rotate(12deg)}
+#fabEdit{bottom:20px;--c:var(--accent)}
+#fabSet{bottom:84px;--c:var(--cyan)}
+#fabTop{bottom:148px;--c:var(--pink)}
+body.editing #fabEdit{background:var(--accent);box-shadow:0 0 28px var(--accent)}
+
+#panel{position:fixed;top:0;right:0;bottom:0;width:min(390px,100vw);z-index:90;background:rgba(10,3,34,.96);border-left:2px solid var(--cyan);padding:22px 20px 40px;overflow:auto;transform:translateX(105%);transition:.35s;box-shadow:-10px 0 40px #000a}
+#panel.open{transform:none}
+#panel h3{color:var(--accent);font-style:italic;font-weight:900;margin:18px 0 8px;font-size:1.15rem;text-shadow:0 0 8px var(--glow)}
+#panel label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:6px 0;font-size:.95rem}
+#panel input[type=color]{width:46px;height:30px;border:none;background:none}
+#panel textarea,#panel input[type=text]{width:100%;background:#1a0b45;color:#fff;border:1px solid var(--cyan);border-radius:8px;padding:8px;font-family:inherit}
+#panel textarea{min-height:90px}
+.row{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.close{position:absolute;top:12px;right:14px;background:none;border:none;color:#fff;font-size:1.6rem}
+.swatch{width:46px;height:30px;border-radius:6px;border:2px solid #fff6}
+
+#modal{position:fixed;inset:0;z-index:100;background:rgba(5,0,20,.8);backdrop-filter:blur(6px);display:none;place-items:center;padding:16px}
+#modal.open{display:grid}
+.mbox{width:min(560px,100%);max-height:88vh;overflow:auto;background:#130640;border:2px solid var(--pink);border-radius:20px;padding:22px;box-shadow:0 0 40px var(--pink);animation:rise .3s both}
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin:12px 0}
+.egrid button{font-size:1.7rem;background:#ffffff10;border:1px solid transparent;border-radius:10px;padding:4px;transition:.15s}
+.egrid button:hover{background:#ffffff30;border-color:var(--accent);transform:scale(1.2)}
+.mbox input[type=text]{width:100%;padding:10px;border-radius:10px;border:1px solid var(--cyan);background:#1a0b45;color:#fff;font-size:1.4rem;text-align:center}
+
+#toast{position:fixed;bottom:30px;left:50%;transform:translate(-50%,40px);opacity:0;z-index:120;background:var(--accent);color:#14063a;font-weight:800;padding:10px 22px;border-radius:999px;transition:.3s;box-shadow:0 0 24px var(--accent);pointer-events:none}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.foot{text-align:center;margin-top:70px;color:#c9b8ff;outline:none}
+.floaties{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.floaties span{position:absolute;bottom:-60px;font-size:var(--fs);opacity:.5;animation:floatUp var(--t) linear infinite;animation-delay:var(--dl)}
+@keyframes floatUp{to{transform:translateY(-120vh) rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="bgimg"></div>
+<div class="layer" id="sky"></div>
+<div class="layer" id="tri"><svg viewBox="0 0 200 180"><defs><linearGradient id="tg" x1="0" x2="1"><stop offset="0" stop-color="#ffb347"/><stop offset=".5" stop-color="#ff2bd6"/><stop offset="1" stop-color="#ffe14d"/></linearGradient></defs><polygon points="100,8 192,170 8,170" fill="none" stroke="url(#tg)" stroke-width="5" stroke-linejoin="round"/></svg></div>
+<div class="layer" id="city"></div>
+<div class="layer" id="puffs"></div>
+<div class="layer" id="warns"></div>
+<canvas class="layer" id="rain"></canvas>
+<div class="layer" id="flash"></div>
+<div class="floaties" id="floaties"></div>
+<div class="layer" id="vig"></div>
+<div class="layer" id="scan"></div>
+<canvas class="layer" id="fx"></canvas>
+
+<div id="editBanner">✏️ โหมดแก้ไขเปิดอยู่ — คลิกที่ข้อความหรือรูปเพื่อแก้ได้เลย</div>
+<button class="btn" id="backBtn" data-a="home">◀ กลับหน้าแรก</button>
+<main id="app"></main>
+
+<button class="fab" id="fabTop" title="ขึ้นบน" data-a="top">⬆</button>
+<button class="fab" id="fabSet" title="ตั้งค่า" data-a="settings">⚙</button>
+<button class="fab" id="fabEdit" title="โหมดแก้ไข" data-a="edit">✏️</button>
+
+<aside id="panel">
+  <button class="close" data-a="settings">✕</button>
+  <h3 style="margin-top:0">⚙ ตั้งค่าเว็บไซต์</h3>
+
+  <h3>ข้อความ</h3>
+  <label style="display:block">ชื่อหัวเว็บ<input type="text" id="setTitle"></label>
+  <label style="display:block;margin-top:8px">ข้อความพิมพ์วนใต้หัวเว็บ (บรรทัดละ 1 ข้อความ)</label>
+  <textarea id="setPhrases"></textarea>
+  <label style="display:block;margin-top:8px">ข้อความท้ายเว็บ<input type="text" id="setFooter"></label>
+
+  <h3>สี</h3>
+  <label>สีตัวอักษรหลัก <input type="color" id="c-accent"></label>
+  <label>สีเรืองแสงตัวอักษร <input type="color" id="c-glow"></label>
+  <label>สีชมพูนีออน <input type="color" id="c-pink"></label>
+  <label>สีฟ้านีออน <input type="color" id="c-cyan"></label>
+  <label>สีม่วงพื้นหลัง <input type="color" id="c-violet"></label>
+  <div class="row">
+    <button class="btn sm" data-preset="neon">Neon ม่วง</button>
+    <button class="btn sm cyan" data-preset="edge">เหลือง-เขียว</button>
+    <button class="btn sm pink" data-preset="sunset">Sunset</button>
+  </div>
+
+  <h3>เอฟเฟกต์</h3>
+  <label>🌧 ฝน <input type="checkbox" data-fx="rain"></label>
+  <label>💨 ควันระเบิด <input type="checkbox" data-fx="smoke"></label>
+  <label>🏙 ตึกเมือง <input type="checkbox" data-fx="city"></label>
+  <label>🔺 สามเหลี่ยมนีออน <input type="checkbox" data-fx="tri"></label>
+  <label>⚠ ป้ายเตือนกะพริบ <input type="checkbox" data-fx="warn"></label>
+  <label>⚡ ฟ้าแลบ <input type="checkbox" data-fx="flash"></label>
+  <label>✨ อนุภาคตามเมาส์/คลิก <input type="checkbox" data-fx="particles"></label>
+  <label>📺 เส้นสแกนจอ <input type="checkbox" data-fx="scan"></label>
+  <label>👾 กลิตช์หัวเว็บ <input type="checkbox" data-fx="glitch"></label>
+  <label>🃏 การ์ดเอียงตามเมาส์ <input type="checkbox" data-fx="tilt"></label>
+  <label>🎈 อีโมจิลอยขึ้น <input type="checkbox" data-fx="float"></label>
+  <label>🔊 เสียงเอฟเฟกต์ <input type="checkbox" data-fx="sound"></label>
+  <label>ความแรงฝน <input type="range" id="rainAmt" min="0.2" max="3" step="0.1"></label>
+
+  <h3>พื้นหลัง</h3>
+  <div class="row">
+    <button class="btn sm" id="bgUp">📁 อัปโหลดรูปพื้นหลังเอง</button>
+    <button class="btn sm pink" id="bgClear">ล้างรูป</button>
+  </div>
+  <input type="file" id="bgFile" accept="image/*" hidden>
+
+  <h3>ข้อมูล</h3>
+  <div class="row">
+    <button class="btn sm" id="exp">⬇ ส่งออก JSON</button>
+    <button class="btn sm cyan" id="imp">⬆ นำเข้า JSON</button>
+    <button class="btn sm pink" id="reset">↺ รีเซ็ตทั้งหมด</button>
+  </div>
+  <input type="file" id="impFile" accept="application/json" hidden>
+  <p style="font-size:.8rem;opacity:.7;margin-top:12px">ข้อมูลทุกอย่างจะถูกบันทึกในเบราว์เซอร์อัตโนมัติ</p>
+</aside>
+
+<div id="modal"><div class="mbox">
+  <h3 style="color:var(--accent);font-style:italic">เลือกอีโมจิ หรือใส่รูปแทน</h3>
+  <div class="row">
+    <button class="btn sm" id="avUp">📷 อัปโหลดรูปของคุณ</button>
+    <button class="btn sm pink" id="avDel">ลบรูป (กลับเป็นอีโมจิ)</button>
+    <button class="btn sm cyan" id="avClose">ปิด</button>
+  </div>
+  <input type="file" id="avFile" accept="image/*" hidden>
+  <input type="text" id="avText" placeholder="พิมพ์/วางอีโมจิเองแล้วกด Enter" maxlength="8">
+  <div class="egrid" id="egrid"></div>
+</div></div>
+<div id="toast"></div>
+
+<script>
+/* =====================================================================
+   ข้อมูลเริ่มต้น (แก้ได้ที่นี่ หรือแก้ในหน้าเว็บด้วยโหมดแก้ไข ✏️)
+   ===================================================================== */
+const KEY='intro-site-v1';
+const DEFAULT={
+  title:'แนะนำตัว',
+  phrases:['สวัสดี! ยินดีต้อนรับสู่เว็บแนะนำตัว','คลิกการ์ดเพื่อดูโปรไฟล์เต็ม','กด ✏️ มุมขวาล่างเพื่อแก้ไขทุกอย่าง','เพิ่มสมาชิกได้ไม่จำกัด!'],
+  footer:'© เว็บแนะนำตัว • แก้ไขข้อความนี้ได้',
+  theme:{accent:'#fcee0a',glow:'#19ff8a',pink:'#ff2bd6',cyan:'#19f0ff',violet:'#7a2bff'},
+  fx:{rain:true,smoke:true,city:true,tri:true,warn:true,flash:true,particles:true,scan:true,glitch:true,tilt:true,float:true,sound:false},
+  rain:1.2,bg:'',
+  people:[
+    {id:'p1',name:'เอ็กซ์',nick:'"X"',role:'นักพัฒนา',emoji:'😎',img:'',age:'20',bday:'1 มกราคม',fav:'เกม, เพลง EDM',contact:'@x_dev',hobby:'เกม, เขียนโค้ด, ดูอนิเมะ',bio:'สวัสดีครับ ผมเอ็กซ์ ชอบสร้างอะไรใหม่ ๆ เสมอ\nแก้ข้อความนี้ได้เลยในโหมดแก้ไข',color:'#ff2bd6',skills:[{n:'เขียนโค้ด',v:90},{n:'เกม',v:80},{n:'ภาษาอังกฤษ',v:60}]},
+    {id:'p2',name:'มินท์',nick:'มินมิน',role:'นักวาดภาพ',emoji:'🎨',img:'',age:'19',bday:'14 กุมภาพันธ์',fav:'ชานม, สีน้ำ',contact:'@mint.art',hobby:'วาดรูป, ถ่ายรูป, คาเฟ่',bio:'ชอบวาดรูปสีสดใสและตัวละครนีออน',color:'#19f0ff',skills:[{n:'วาดรูป',v:95},{n:'ออกแบบ',v:85},{n:'ถ่ายรูป',v:70}]},
+    {id:'p3',name:'พีช',nick:'พีชชี่',role:'นักร้อง',emoji:'🎤',img:'',age:'21',bday:'9 มีนาคม',fav:'เค-ป็อป, ขนมหวาน',contact:'@peach.sing',hobby:'ร้องเพลง, เต้น, ดูซีรีส์',bio:'เสียงดีไม่ดีไม่รู้ แต่ร้องทุกวัน!',color:'#fcee0a',skills:[{n:'ร้องเพลง',v:88},{n:'เต้น',v:75},{n:'แต่งเพลง',v:60}]},
+    {id:'p4',name:'ไบรท์',nick:'ไบรท์ตี้',role:'นักกีฬา',emoji:'⚽',img:'',age:'20',bday:'30 เมษายน',fav:'ฟุตบอล, ข้าวมันไก่',contact:'@bright_fc',hobby:'ฟุตบอล, วิ่ง, ฟิตเนส',bio:'พลังงานล้นเหลือ ชวนออกกำลังกายได้ทุกเมื่อ',color:'#19ff8a',skills:[{n:'ฟุตบอล',v:92},{n:'ความอึด',v:85},{n:'ทำอาหาร',v:40}]},
+    {id:'p5',name:'โอ๊ต',nick:'โอ๊ตมีล',role:'นักเล่าเรื่อง',emoji:'📚',img:'',age:'22',bday:'5 พฤษภาคม',fav:'นิยาย, กาแฟ',contact:'@oat.story',hobby:'อ่านหนังสือ, เขียนนิยาย, ท่องเที่ยว',bio:'ชอบเรื่องราวแปลก ๆ และเมืองไซเบอร์พังก์',color:'#a66bff',skills:[{n:'เขียน',v:90},{n:'จินตนาการ',v:98},{n:'พูด',v:65}]}
+  ]
+};
+const EMOJIS='😀 😎 🤩 🥳 😺 🐶 🐱 🦊 🐼 🐯 🦄 🐲 👾 🤖 👻 💀 🔥 ⚡ 🌈 ✨ 💎 🎧 🎤 🎸 🎹 🎮 🕹 🎨 📷 📚 ✏️ 💻 ⚽ 🏀 🏐 🚀 🛸 🌙 ⭐ 🌸 🍜 🍕 🍣 🍰 🧋 ☕ 🎂 💜 💖 💙 💛 🖤 ⚔️ 🗡 🛡 🧠 👑 🎭 🎬 🧪 🌍 🏍 🚗 ✈️ 🎯 🧩 🪐 🌊 🍀 🐸 🐧 🦋 🐙 🦈 🐺 🦉 🐰'.split(' ');
+
+/* ===================== STATE ===================== */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+S=Object.assign(structuredClone(DEFAULT),S||{}); S.fx=Object.assign({},DEFAULT.fx,S.fx); S.theme=Object.assign({},DEFAULT.theme,S.theme);
+S.edit=false;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const getP=id=>S.people.find(p=>p.id===id);
+function save(){try{const d={...S};delete d.edit;localStorage.setItem(KEY,JSON.stringify(d))}catch(e){toast('พื้นที่เก็บเต็ม (รูปใหญ่เกิน) ลองใช้รูปเล็กลง')}}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2200)}
+
+/* ===================== SOUND ===================== */
+let AC;
+function beep(f=600,d=.08,type='square',v=.05){
+  if(!S.fx.sound)return;
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.value=v;
+  o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);o.stop(AC.currentTime+d)}catch(e){}
+}
+
+/* ===================== RENDER HELPERS ===================== */
+const ce=()=>S.edit?' contenteditable="true" spellcheck="false"':'';
+const E=(tag,cls,pid,f,val,ph)=>`<${tag} class="${cls}"${ce()} data-pid="${pid}" data-f="${f}" data-ph="${ph||''}">${esc(val)}</${tag}>`;
+const avatar=p=>`<div class="av ${''}" data-a="avatar" data-id="${p.id}">${p.img?`<img src="${p.img}" alt="">`:`<span class="emo">${esc(p.emoji||'🙂')}</span>`}<i class="camera">📷 เปลี่ยน</i></div>`;
+const tags=p=>(p.hobby||'').split(',').map(t=>t.trim()).filter(Boolean).slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+
+function homeHTML(){
+  const q=($('#q')?.value||'').toLowerCase();
+  const list=S.people.map((p,i)=>({p,i})).filter(({p})=>!q||[p.name,p.nick,p.role,p.hobby].join(' ').toLowerCase().includes(q));
+  return `<section class="hero">
+    <h1 class="ttl glitch"${ce()} data-g="title" data-text="${esc(S.title)}" data-ph="ชื่อหัวเว็บ">${esc(S.title)}</h1>
+    <div class="hatch"></div>
+    <div class="typing" id="typing"></div>
+    <div class="toolbar">
+      <input class="search" id="q" placeholder="🔍 ค้นหาชื่อ / งานอดิเรก..." value="${esc(q)}">
+      <span class="badge">สมาชิก ${S.people.length} คน</span>
+      <button class="btn sm cyan" data-a="random">🎲 สุ่มคน</button>
+      <button class="btn sm pink editonly" data-a="add">＋ เพิ่มคน</button>
+    </div>
+  </section>
+  <section class="grid" id="grid">
+    ${list.map(({p,i})=>`
+    <article class="card" style="--pc:${p.color};--i:${i}" data-a="card" data-id="${p.id}">
+      <button class="x editonly" data-a="del" data-id="${p.id}" title="ลบ">×</button>
+      ${avatar(p)}
+      ${E('div','nm',p.id,'name',p.name,'ชื่อ')}
+      ${E('div','nk',p.id,'nick',p.nick,'ชื่อเล่น')}
+      ${E('div','rl',p.id,'role',p.role,'อาชีพ/บทบาท')}
+      <div class="tags">${tags(p)}</div>
+      <button class="btn sm" data-a="open" data-id="${p.id}">เปิดดูโปรไฟล์ ▶</button>
+    </article>`).join('')}
+    <div class="addcard" data-a="add"><div><b>＋</b>เพิ่มคนใหม่</div></div>
+  </section>
+  <div class="foot"${ce()} data-g="footer" data-ph="ข้อความท้ายเว็บ">${esc(S.footer)}</div>`;
+}
+
+function profileHTML(p){
+  const i=S.people.findIndex(x=>x.id===p.id);
+  const info=[['อายุ','age'],['วันเกิด','bday'],['ชอบ','fav'],['ติดต่อ','contact']];
+  return `<section class="profile" style="--pc:${p.color}">
+    <div class="pbar">
+      <button class="btn" data-a="home">◀ กลับหน้าแรก</button>
+      <div class="pnav"><button class="btn ghost sm" data-a="prev">‹</button><span class="mono">${i+1} / ${S.people.length}</span><button class="btn ghost sm" data-a="next">›</button></div>
+    </div>
+    <div class="pgrid">
+      <div class="pleft">
+        <div class="av big" data-a="avatar" data-id="${p.id}">${p.img?`<img src="${p.img}" alt="">`:`<span class="emo">${esc(p.emoji||'🙂')}</span>`}<i class="camera">📷 เปลี่ยน</i></div>
+        <label class="colorrow">🎨 สีประจำตัว <input type="color" value="${p.color}" data-pcolor="${p.id}"></label>
+      </div>
+      <div class="pright">
+        ${E('h2','ttl',p.id,'name',p.name,'ชื่อ')}
+        <div>${E('div','nick',p.id,'nick',p.nick,'ชื่อเล่น')}</div>
+        ${E('div','role',p.id,'role',p.role,'บทบาท')}
+        <div class="info">${info.map(([l,f])=>`<div><small>${l}</small>${E('span','',p.id,f,p[f],'-')}</div>`).join('')}</div>
+        <div class="sec">▍งานอดิเรก</div>
+        ${S.edit?E('div','bio',p.id,'hobby',p.hobby,'คั่นด้วยเครื่องหมายจุลภาค ,'):`<div class="tags" style="justify-content:flex-start">${(p.hobby||'').split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div>`}
+        <div class="sec">▍เกี่ยวกับฉัน</div>
+        ${E('div','bio',p.id,'bio',p.bio,'เขียนแนะนำตัวที่นี่...')}
+        <div class="sec">▍ทักษะ</div>
+        ${p.skills.map((s,k)=>`<div class="skill">
+          <span class="sn"${ce()} data-pid="${p.id}" data-sk="${k}" data-ph="ทักษะ">${esc(s.n)}</span>
+          <div class="bar"><i style="--w:${s.v}%"></i></div><span class="sv">${s.v}%</span>
+          <button class="mini" data-a="delskill" data-id="${p.id}" data-k="${k}">×</button>
+          <input type="range" min="0" max="100" value="${s.v}" data-range="${p.id}" data-k="${k}">
+        </div>`).join('')}
+        <button class="btn sm cyan editonly" data-a="addskill" data-id="${p.id}" style="margin-top:8px">＋ เพิ่มทักษะ</button>
+      </div>
+    </div>
+  </section>`;
+}
+
+let lastRoute='';
+function render(){
+  document.body.classList.toggle('editing',S.edit);
+  const m=location.hash.match(/^#\/p\/(.+)$/);
+  const app=$('#app');
+  if(m){const p=getP(m[1]);if(!p){location.hash='#/';return}app.innerHTML=profileHTML(p)}
+  else app.innerHTML=homeHTML();
+  $('#backBtn').classList.toggle('show',!!m);
+  if(lastRoute!==location.hash){window.scrollTo({top:0});lastRoute=location.hash}
+  if(!m)startTyping();
+}
+window.addEventListener('hashchange',()=>{beep(520,.1);render()});
+
+/* ===================== TYPING ===================== */
+let tyTimer;
+function startTyping(){
+  clearTimeout(tyTimer);const el=$('#typing');if(!el)return;
+  const ph=S.phrases.filter(Boolean);if(!ph.length)return;
+  let i=0,j=0,del=false;
+  (function tick(){
+    const el=$('#typing');if(!el)return;
+    const t=ph[i%ph.length];
+    el.textContent=t.slice(0,j);
+    if(!del&&j===t.length){del=true;tyTimer=setTimeout(tick,1600);return}
+    if(del&&j===0){del=false;i++}
+    j+=del?-1:1;tyTimer=setTimeout(tick,del?25:55);
+  })();
+}
+
+/* ===================== EVENTS ===================== */
+function go(id){location.hash=id?'#/p/'+id:'#/'}
+function uid(){return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
+let avTarget=null;
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const a=t.dataset.a,id=t.dataset.id;
+  if(a==='card'){if(S.edit)return;beep(700,.1);return go(id)}
+  e.stopPropagation&&0;
+  switch(a){
+    case 'open':beep(700,.1);go(id);break;
+    case 'home':go();break;
+    case 'top':window.scrollTo({top:0,behavior:'smooth'});break;
+    case 'edit':S.edit=!S.edit;toast(S.edit?'✏️ เปิดโหมดแก้ไขแล้ว':'✅ ออกจากโหมดแก้ไข (บันทึกแล้ว)');save();render();beep(900,.12);break;
+    case 'settings':$('#panel').classList.toggle('open');break;
+    case 'random':{const p=S.people[Math.floor(Math.random()*S.people.length)];toast('🎲 สุ่มได้: '+p.name);go(p.id);break}
+    case 'add':{
+      const p={id:uid(),name:'ชื่อใหม่',nick:'ชื่อเล่น',role:'บทบาท',emoji:EMOJIS[Math.floor(Math.random()*EMOJIS.length)],img:'',age:'',bday:'',fav:'',contact:'',hobby:'งานอดิเรก 1, งานอดิเรก 2',bio:'แนะนำตัวที่นี่...',color:['#ff2bd6','#19f0ff','#fcee0a','#19ff8a','#a66bff','#ff8a3d'][S.people.length%6],skills:[{n:'ทักษะ',v:70}]};
+      S.people.push(p);S.edit=true;save();render();toast('➕ เพิ่มคนใหม่แล้ว แก้ไขได้เลย');beep(1000,.15);
+      setTimeout(()=>$(`[data-id="${p.id}"]`)?.scrollIntoView({behavior:'smooth',block:'center'}),100);break}
+    case 'del':if(confirm('ลบคนนี้ออกจากเว็บ?')){S.people=S.people.filter(p=>p.id!==id);save();render();toast('🗑 ลบแล้ว')}break;
+    case 'avatar':if(!S.edit)return;avTarget=id;openModal();break;
+    case 'prev':case 'next':{const m=location.hash.match(/^#\/p\/(.+)$/);const i=S.people.findIndex(p=>p.id===m[1]);const n=(i+(a==='next'?1:-1)+S.people.length)%S.people.length;go(S.people[n].id);break}
+    case 'addskill':getP(id).skills.push({n:'ทักษะใหม่',v:50});save();render();break;
+    case 'delskill':getP(id).skills.splice(+t.dataset.k,1);save();render();break;
+  }
+});
+
+/* edit text */
+document.addEventListener('focusout',e=>{
+  const el=e.target;if(!S.edit||!el.isContentEditable)return;
+  const v=el.innerText.replace(/\u00a0/g,' ').trim();
+  if(el.dataset.g){S[el.dataset.g]=v}
+  else if(el.dataset.pid){const p=getP(el.dataset.pid);if(!p)return;
+    if(el.dataset.sk!==undefined)p.skills[+el.dataset.sk].n=v;else p[el.dataset.f]=v}
+  save();
+  if(el.dataset.f==='hobby'||el.dataset.f==='name'||el.dataset.f==='role'||el.dataset.f==='nick'){/* sync later */}
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.dataset.g==='title')el.dataset.text=el.innerText;
+  if(el.matches('#q'))filterGrid();
+  if(el.dataset.range){const p=getP(el.dataset.range);p.skills[+el.dataset.k].v=+el.value;const row=el.closest('.skill');row.querySelector('.bar i').style.setProperty('--w',el.value+'%');row.querySelector('.sv').textContent=el.value+'%';save()}
+  if(el.dataset.pcolor){getP(el.dataset.pcolor).color=el.value;$('.profile').style.setProperty('--pc',el.value);save()}
+});
+function filterGrid(){const q=$('#q').value.toLowerCase();$$('.card').forEach(c=>{const p=getP(c.dataset.id);c.style.display=[p.name,p.nick,p.role,p.hobby].join(' ').toLowerCase().includes(q)?'':'none'})}
+document.addEventListener('keydown',e=>{
+  const el=e.target;
+  if(el.isContentEditable&&e.key==='Enter'&&!el.classList.contains('bio')){e.preventDefault();el.blur()}
+  if(e.key==='Escape'){$('#panel').classList.remove('open');closeModal()}
+});
+document.addEventListener('paste',e=>{const el=e.target;if(el.isContentEditable){e.preventDefault();document.execCommand('insertText',false,(e.clipboardData||window.clipboardData).getData('text/plain'))}});
+
+/* ===================== AVATAR MODAL ===================== */
+$('#egrid').innerHTML=EMOJIS.map(x=>`<button>${x}</button>`).join('');
+function openModal(){$('#modal').classList.add('open');$('#avText').value=''}
+function closeModal(){$('#modal').classList.remove('open')}
+$('#avClose').onclick=closeModal;
+$('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal()});
+$('#egrid').addEventListener('click',e=>{if(e.target.tagName==='BUTTON'){setEmoji(e.target.textContent)}});
+$('#avText').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value.trim())setEmoji(e.target.value.trim())});
+function setEmoji(x){const p=getP(avTarget);p.emoji=x;p.img='';save();render();closeModal();beep(1100,.1)}
+$('#avUp').onclick=()=>$('#avFile').click();
+$('#avFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const p=getP(avTarget);p.img=await fileToData(f,400);save();render();closeModal();toast('📷 ใส่รูปแล้ว');e.target.value=''};
+$('#avDel').onclick=()=>{const p=getP(avTarget);p.img='';save();render();closeModal()};
+function fileToData(file,max){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height));const c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/webp',.85))};im.src=r.result};r.readAsDataURL(file)})}
+
+/* ===================== SETTINGS ===================== */
+const PRESETS={
+  neon:{accent:'#fcee0a',glow:'#19ff8a',pink:'#ff2bd6',cyan:'#19f0ff',violet:'#7a2bff'},
+  edge:{accent:'#f8ff1f',glow:'#3cff6a',pink:'#b6ff00',cyan:'#2effd1',violet:'#0f7a4a'},
+  sunset:{accent:'#ffd24d',glow:'#ff7a2b',pink:'#ff4d8d',cyan:'#ffb36b',violet:'#8a1c5c'}
+};
+function applyTheme(){const r=document.documentElement.style;for(const k in S.theme)r.setProperty('--'+k,S.theme[k])}
+function applyFx(){
+  const map={city:'no-city',tri:'no-tri',smoke:'no-smoke',scan:'no-scan',warn:'no-warn',flash:'no-flash',glitch:'no-glitch',tilt:'no-tilt'};
+  for(const k in map)document.body.classList.toggle(map[k],!S.fx[k]);
+  $('#floaties').style.display=S.fx.float?'':'none';
+  $('#bgimg').style.backgroundImage=S.bg?`url(${S.bg})`:'none';
+}
+function syncSettings(){
+  $('#setTitle').value=S.title;$('#setPhrases').value=S.phrases.join('\n');$('#setFooter').value=S.footer;
+  for(const k in S.theme)$('#c-'+k).value=S.theme[k];
+  $$('[data-fx]').forEach(i=>i.checked=!!S.fx[i.dataset.fx]);
+  $('#rainAmt').value=S.rain;
+}
+$('#setTitle').oninput=e=>{S.title=e.target.value;save();const h=$('h1.ttl');if(h){h.textContent=S.title;h.dataset.text=S.title}};
+$('#setPhrases').oninput=e=>{S.phrases=e.target.value.split('\n').map(s=>s.trim()).filter(Boolean);save();startTyping()};
+$('#setFooter').oninput=e=>{S.footer=e.target.value;save();const f=$('.foot');if(f)f.textContent=S.footer};
+for(const k of Object.keys(DEFAULT.theme))$('#c-'+k).oninput=e=>{S.theme[k]=e.target.value;applyTheme();save();buildCity()};
+$$('[data-preset]').forEach(b=>b.onclick=()=>{S.theme={...PRESETS[b.dataset.preset]};applyTheme();syncSettings();save();buildCity();toast('🎨 เปลี่ยนธีมแล้ว')});
+$$('[data-fx]').forEach(i=>i.onchange=()=>{S.fx[i.dataset.fx]=i.checked;applyFx();save();if(i.dataset.fx==='sound'&&i.checked)beep(800,.2)});
+$('#rainAmt').oninput=e=>{S.rain=+e.target.value;save()};
+$('#bgUp').onclick=()=>$('#bgFile').click();
+$('#bgFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;S.bg=await fileToData(f,1600);applyFx();save();toast('🖼 เปลี่ยนพื้นหลังแล้ว');e.target.value=''};
+$('#bgClear').onclick=()=>{S.bg='';applyFx();save()};
+$('#exp').onclick=()=>{const d={...S};delete d.edit;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}));a.download='intro-site-data.json';a.click()};
+$('#imp').onclick=()=>$('#impFile').click();
+$('#impFile').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);S=Object.assign(structuredClone(DEFAULT),d);S.edit=false;save();applyTheme();applyFx();syncSettings();buildCity();render();toast('⬆ นำเข้าสำเร็จ')}catch(x){toast('ไฟล์ไม่ถูกต้อง')}});e.target.value=''};
+$('#reset').onclick=()=>{if(confirm('รีเซ็ตทุกอย่างกลับค่าเริ่มต้น?')){localStorage.removeItem(KEY);location.reload()}};
+
+/* ===================== BACKGROUND BUILDERS ===================== */
+function rnd(a,b){return a+Math.random()*(b-a)}
+function buildCity(){
+  const W=1600,H=900;let s=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice">`;
+  const cols=[S.theme.cyan,S.theme.pink,S.theme.accent,'#ffffff'];
+  const layer=(n,minH,maxH,fill,op,win)=>{
+    let x=-40;
+    while(x<W){
+      const w=rnd(70,150),h=rnd(minH,maxH);
+      s+=`<g opacity="${op}"><rect x="${x}" y="${H-h}" width="${w}" height="${h}" fill="${fill}" stroke="${S.theme.violet}" stroke-width="2"/>`;
+      if(win)for(let y=H-h+16;y<H-30;y+=22)for(let wx=x+10;wx<x+w-14;wx+=18){
+        if(Math.random()<.45){const c=cols[Math.floor(Math.random()*cols.length)];
+          s+=`<rect class="win" style="animation-delay:${rnd(0,6).toFixed(1)}s" x="${wx}" y="${y}" width="8" height="11" fill="${c}" opacity="${rnd(.5,.95).toFixed(2)}"/>`}}
+      if(win&&Math.random()<.35){const c=cols[Math.floor(Math.random()*3)];s+=`<rect x="${x+8}" y="${H-h+4}" width="${w-16}" height="5" fill="${c}" style="filter:drop-shadow(0 0 6px ${c})"/>`}
+      s+='</g>';x+=w+rnd(4,26);
+    }
+  };
+  layer(0,260,560,'#1a0850',.55,false);
+  layer(0,180,420,'#0e0330',.95,true);
+  s+=`<rect x="0" y="${H-70}" width="${W}" height="70" fill="#07011a"/><rect x="0" y="${H-72}" width="${W}" height="3" fill="${S.theme.pink}" style="filter:drop-shadow(0 0 8px ${S.theme.pink})"/></svg>`;
+  $('#city').innerHTML=s;
+}
+function buildPuffs(){
+  const defs=[[-4,'34vmin','5s',0],[10,'26vmin','6.5s',1],[26,'30vmin','4.6s',0],[48,'22vmin','7s',1],[62,'30vmin','5.4s',0],[80,'36vmin','6s',0],[92,'24vmin','4.8s',1]];
+  $('#puffs').innerHTML=defs.map(([l,sz,d,dk],i)=>`<div class="puff ${dk?'dark':''}" style="left:${l}vw;--s:${sz};--d:${d};animation-delay:-${i}s"></div>`).join('');
+}
+function buildWarns(){
+  const tri=`<svg viewBox="0 0 60 54"><polygon points="30,4 56,50 4,50" fill="rgba(255,255,255,.08)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><rect x="28" y="19" width="4" height="17" fill="#fff"/><rect x="28" y="40" width="4" height="4" fill="#fff"/></svg>`;
+  $('#warns').innerHTML=[[6,76,0],[84,72,.5],[70,12,1],[16,18,.8]].map(([l,t,d])=>`<div class="warn" style="left:${l}vw;top:${t}vh;animation-delay:${d}s">${tri}</div>`).join('');
+}
+function buildFloaties(){
+  const em=['✨','💜','⚡','🌸','💎','⭐','🔮','👾'];
+  $('#floaties').innerHTML=Array.from({length:14},(_,i)=>`<span style="left:${rnd(0,98)}vw;--fs:${rnd(16,36).toFixed(0)}px;--t:${rnd(14,30).toFixed(1)}s;--dl:-${rnd(0,25).toFixed(1)}s">${em[i%em.length]}</span>`).join('');
+}
+
+/* ===================== RAIN + PARTICLES ===================== */
+const rc=$('#rain'),rx=rc.getContext('2d'),fc=$('#fx'),fxc=fc.getContext('2d');
+let drops=[],parts=[];
+function resize(){rc.width=fc.width=innerWidth;rc.height=fc.height=innerHeight}
+addEventListener('resize',resize);resize();
+for(let i=0;i<700;i++)drops.push({x:rnd(0,innerWidth+300),y:rnd(0,innerHeight),l:rnd(10,28),v:rnd(14,28)});
+function loop(){
+  rx.clearRect(0,0,rc.width,rc.height);
+  if(S.fx.rain){
+    const n=Math.min(drops.length,Math.floor(220*S.rain));
+    rx.lineWidth=1.2;
+    for(let i=0;i<n;i++){const d=drops[i];
+      rx.strokeStyle=i%7===0?'rgba(255,120,230,.55)':'rgba(160,230,255,.45)';
+      rx.beginPath();rx.moveTo(d.x,d.y);rx.lineTo(d.x-d.l*.3,d.y+d.l);rx.stroke();
+      d.y+=d.v;d.x-=d.v*.3;
+      if(d.y>rc.height){d.y=-30;d.x=rnd(0,rc.width+300)}}
+  }
+  fxc.clearRect(0,0,fc.width,fc.height);
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.life-=.02;
+    if(p.life<=0){parts.splice(i,1);continue}
+    fxc.globalAlpha=p.life;fxc.fillStyle=p.c;fxc.shadowColor=p.c;fxc.shadowBlur=12;
+    fxc.save();fxc.translate(p.x,p.y);fxc.rotate(p.life*6);fxc.fillRect(-p.s/2,-p.s/2,p.s,p.s);fxc.restore();
+  }
+  fxc.globalAlpha=1;
+  requestAnimationFrame(loop);
+}
+const PC=()=>[S.theme.accent,S.theme.pink,S.theme.cyan,S.theme.glow];
+let lastT=0;
+addEventListener('mousemove',e=>{
+  document.body.style.setProperty('--px',(e.clientX/innerWidth-.5).toFixed(3));
+  document.body.style.setProperty('--py',(e.clientY/innerHeight-.5).toFixed(3));
+  if(S.fx.particles&&performance.now()-lastT>30){lastT=performance.now();const c=PC();
+    parts.push({x:e.clientX,y:e.clientY,vx:rnd(-1,1),vy:rnd(-1,1),g:.04,life:1,s:rnd(3,7),c:c[Math.floor(Math.random()*4)]})}
+  const card=e.target.closest?.('.card');
+  if(card&&S.fx.tilt){const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+    card.style.setProperty('--ry',((x-.5)*16).toFixed(1)+'deg');card.style.setProperty('--rx',((.5-y)*16).toFixed(1)+'deg');
+    card.style.setProperty('--mx',(x*100)+'%');card.style.setProperty('--my',(y*100)+'%')}
+});
+document.addEventListener('mouseout',e=>{const c=e.target.closest?.('.card');if(c){c.style.setProperty('--rx','0deg');c.style.setProperty('--ry','0deg')}});
+document.addEventListener('mouseover',e=>{if(e.target.closest?.('.card,.btn'))beep(400+Math.random()*200,.04,'triangle',.03)});
+addEventListener('pointerdown',e=>{
+  if(!S.fx.particles)return;const c=PC();
+  for(let i=0;i<34;i++){const a=rnd(0,6.28),v=rnd(2,7);
+    parts.push({x:e.clientX,y:e.clientY,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:.12,life:1,s:rnd(4,10),c:c[i%4]})}
+});
+
+/* ===================== LIGHTNING ===================== */
+(function lightning(){
+  setTimeout(()=>{
+    if(S.fx.flash){const f=$('#flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),90);
+      setTimeout(()=>{f.classList.add('on');setTimeout(()=>f.classList.remove('on'),70)},180)}
+    lightning();
+  },rnd(5000,14000));
+})();
+
+/* ===================== INIT ===================== */
+applyTheme();applyFx();buildCity();buildPuffs();buildWarns();buildFloaties();syncSettings();
+if(!location.hash)location.hash='#/';
+render();loop();
+</script>
+</body>
+</html>
